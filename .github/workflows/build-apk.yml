@@ -1,0 +1,51 @@
+name: Build QUICKDROP APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-apk.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout QUICKDROP configuration
+        uses: actions/checkout@v4
+
+      - name: Get LocalSend source (Apache-2.0)
+        run: |
+          git clone --depth 1 https://github.com/localsend/localsend.git upstream
+
+      - name: Apply QUICKDROP Android branding
+        working-directory: upstream
+        run: |
+          find app/android/app -type f \( -name "*.gradle" -o -name "*.kt" -o -name "*.java" -o -name "*.xml" \) -print0 | xargs -0 sed -i 's/org\.localsend\.localsend_app/com\.quickdrop\.app/g'
+          sed -i 's/android:label="LocalSend"/android:label="QUICKDROP"/g' app/android/app/src/main/AndroidManifest.xml
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.9"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: upstream/app
+        run: flutter pub get
+
+      - name: Build release APKs
+        working-directory: upstream/app
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload APK files
+        uses: actions/upload-artifact@v4
+        with:
+          name: QUICKDROP-android-apks
+          path: upstream/app/build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
+          retention-days: 14
