@@ -12,30 +12,54 @@ permissions:
 
 jobs:
   build-android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout QUICKDROP configuration
         uses: actions/checkout@v4
 
       - name: Get LocalSend source (Apache-2.0)
-        run: |
-          git clone --depth 1 https://github.com/localsend/localsend.git upstream
+        run: git clone --depth 1 https://github.com/localsend/localsend.git upstream
+
+      - name: Read upstream Flutter version
+        id: flutter
+        working-directory: upstream
+        run: echo "version=$(sed -n 's/.*"flutter"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' .fvmrc)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter.outputs.version }}
+          channel: stable
+          cache: true
 
       - name: Apply QUICKDROP Android branding
         working-directory: upstream
         run: |
           find app/android/app -type f \( -name "*.gradle" -o -name "*.kt" -o -name "*.java" -o -name "*.xml" \) -print0 | xargs -0 sed -i 's/org\.localsend\.localsend_app/com\.quickdrop\.app/g'
           sed -i 's/android:label="LocalSend"/android:label="QUICKDROP"/g' app/android/app/src/main/AndroidManifest.xml
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/android/app/build.gradle")
+          s = p.read_text()
+          s = s.replace("release {\n            signingConfig signingConfigs.release", "release {\n            signingConfig signingConfigs.debug")
+          p.write_text(s)
+          PY
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.41.9"
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
+      - name: Install Flutter dependencies
         working-directory: upstream/app
+        run: flutter pub get
+
+      - name: Install Rust builder dependencies
+        working-directory: upstream/packages/localsend_isolates/rust_builder/cargokit/build_tool
         run: flutter pub get
 
       - name: Build release APKs
