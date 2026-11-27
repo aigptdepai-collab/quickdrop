@@ -157,8 +157,7 @@ private fun HomeScreen(onSend: () -> Unit, onReceive: () -> Unit) {
                     Text("آماده برای اتصال", color = Color(0xFFB8F2CE), fontSize = 11.sp)
                 }
                 Spacer(Modifier.height(14.dp))
-                Text("دستگاهت را
-به دنیای اطرافت وصل کن", color = White, fontSize = 18.sp, fontWeight = FontWeight.Bold, lineHeight = 27.sp)
+                Text("دستگاهت را\nبه دنیای اطرافت وصل کن", color = White, fontSize = 18.sp, fontWeight = FontWeight.Bold, lineHeight = 27.sp)
             }
             Icon(
                 Icons.Rounded.Devices,
