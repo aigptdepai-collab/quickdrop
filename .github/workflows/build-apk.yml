@@ -54,6 +54,45 @@ jobs:
           p.write_text(s)
           PY
 
+      - name: Apply QUICKDROP visual identity
+        working-directory: upstream
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # Apply a restrained violet brand palette and softer component geometry.
+          theme = Path("app/lib/config/theme.dart")
+          s = theme.read_text()
+          s = s.replace("BorderRadius.circular(5)", "BorderRadius.circular(14)")
+          s = s.replace("seedColor: Colors.teal,", "seedColor: const Color(0xFF7653C8),")
+          s = s.replace("seedColor: Colors.teal,", "seedColor: const Color(0xFF7653C8),")
+          s = s.replace("navigationBarTheme: colorScheme.brightness == Brightness.dark", """navigationBarTheme: NavigationBarThemeData(
+              height: 72,
+              indicatorColor: colorScheme.primary.withValues(alpha: 0.18),
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              iconTheme: WidgetStateProperty.resolveWith((states) => IconThemeData(
+                color: states.contains(WidgetState.selected) ? colorScheme.primary : colorScheme.onSurfaceVariant,
+              )),
+            ),
+            navigationBarTheme_unused: colorScheme.brightness == Brightness.dark""", 1)
+          # Remove the compatibility placeholder introduced only as a replacement anchor.
+          s = s.replace("navigationBarTheme_unused: colorScheme.brightness == Brightness.dark", "navigationBarTheme: colorScheme.brightness == Brightness.dark")
+          theme.write_text(s)
+
+          home = Path("app/lib/pages/home_page.dart")
+          s = home.read_text()
+          s = s.replace("'LocalSend',", "'QUICKDROP',")
+          s = s.replace("HomeTab.receive(Icons.wifi)", "HomeTab.receive(Icons.devices_rounded)")
+          s = s.replace("HomeTab.send(Icons.send)", "HomeTab.send(Icons.north_east_rounded)")
+          s = s.replace("HomeTab.settings(Icons.settings)", "HomeTab.settings(Icons.tune_rounded)")
+          home.write_text(s)
+
+          receive = Path("app/lib/pages/tabs/receive_tab.dart")
+          s = receive.read_text()
+          s = s.replace("child: const LocalSendLogo(withText: false),", "child: const Icon(Icons.bolt_rounded, size: 92),")
+          receive.write_text(s)
+          PY
+
       - name: Install Flutter dependencies
         working-directory: upstream/app
         run: flutter pub get
