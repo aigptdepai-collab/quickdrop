@@ -66,17 +66,6 @@ jobs:
           s = s.replace("BorderRadius.circular(5)", "BorderRadius.circular(14)")
           s = s.replace("seedColor: Colors.teal,", "seedColor: const Color(0xFF7653C8),")
           s = s.replace("seedColor: Colors.teal,", "seedColor: const Color(0xFF7653C8),")
-          s = s.replace("navigationBarTheme: colorScheme.brightness == Brightness.dark", """navigationBarTheme: NavigationBarThemeData(
-              height: 72,
-              indicatorColor: colorScheme.primary.withValues(alpha: 0.18),
-              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-              iconTheme: WidgetStateProperty.resolveWith((states) => IconThemeData(
-                color: states.contains(WidgetState.selected) ? colorScheme.primary : colorScheme.onSurfaceVariant,
-              )),
-            ),
-            navigationBarTheme_unused: colorScheme.brightness == Brightness.dark""", 1)
-          # Remove the compatibility placeholder introduced only as a replacement anchor.
-          s = s.replace("navigationBarTheme_unused: colorScheme.brightness == Brightness.dark", "navigationBarTheme: colorScheme.brightness == Brightness.dark")
           theme.write_text(s)
 
           home = Path("app/lib/pages/home_page.dart")
